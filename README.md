@@ -8,45 +8,35 @@ A fast, local-only web app for searching across large `.txt` files with advanced
 
 ## Screenshots
 
-> **To add your own screenshots:** run the app, take a screenshot of each view, and save them to a `docs/screenshots/` folder in this repo, then replace the placeholder paths below.
-
 ### Main Interface — Search & Results
-```
-docs/screenshots/main.png
-```
-![Main Interface](docs/screenshots/main.png)
 
-*The main view: directory bar at the top, query + exclude inputs, display options, action buttons, and live result stream with pagination.*
+![Main Interface](docs/screenshots/main.png.jpg)
+
+*Directory bar, query and exclude inputs, display options, action buttons, and paginated results.*
+
+---
+
+### Query autocomplete
+
+![Query suggestions](docs/screenshots/query-suggestions.jpg)
+
+*Type `AND`, `OR`, `NOT`, or `LIKE` and press **Tab** to accept a suggestion.*
 
 ---
 
 ### File Browser
-```
-docs/screenshots/file-browser.png
-```
-![File Browser](docs/screenshots/file-browser.png)
 
-*Click **Files** to open the file selector. Check individual `.txt` files to narrow the search scope. Shows file sizes and a Select All / Clear All shortcut.*
+![File Browser](docs/screenshots/file-browser.png.jpg)
+
+*Click **Files** to select which `.txt` files to search. Shows file sizes and Select All / Clear All.*
 
 ---
 
-### Results with File + Line Columns
-```
-docs/screenshots/results-full.png
-```
-![Results Full Columns](docs/screenshots/results-full.png)
+### Save feedback
 
-*Turn on **#**, **Line**, and **File** columns in the Display toggle to see row numbers, line numbers, and source filenames alongside each result.*
+![Save toast](docs/screenshots/save-toast.png.jpg)
 
----
-
-### Save Feedback Toast
-```
-docs/screenshots/save-toast.png
-```
-![Save Toast](docs/screenshots/save-toast.png)
-
-*A green success (or red error) toast appears after Quick Save. Auto-dismisses after 5 seconds.*
+*After Quick Save, a green success (or red error) toast appears; it auto-dismisses after 5 seconds.*
 
 ---
 
