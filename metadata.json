@@ -1,0 +1,5 @@
+{
+  "name": "Advanced Search Tool",
+  "description": "A professional-grade file search utility with regex support, exclusion filters, and bulk actions.",
+  "requestFramePermissions": []
+}

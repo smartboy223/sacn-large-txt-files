@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Temp files from folder/save pickers
+_pick_folder_*.txt
+_pick_folder_*.hta
+_pick_folder_*.ps1
+_pick_save_*.txt
+_pick_save_*.ps1
+
+# Test output
+search_results.txt
+refined_results.txt
