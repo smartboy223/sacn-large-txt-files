@@ -335,14 +335,18 @@ export default function App() {
   const handleCopySelected = async () => {
     const sel = resultsRef.current.filter(r => r.selected);
     const src = sel.length ? sel : pageResults;
-    const text = src.map(r => `${r.file}\t${r.line}\t${r.content}`).join('\n');
+    const text = display.contentOnly
+      ? src.map(r => r.content).join('\n')
+      : src.map(r => `${r.file}\t${r.line}\t${r.content}`).join('\n');
     if (!text) return;
     await navigator.clipboard.writeText(text);
     setStatus(`Copied ${src.length} rows`);
   };
 
   const handleCopyAll = async () => {
-    const text = resultsRef.current.map(r => `${r.file}\t${r.line}\t${r.content}`).join('\n');
+    const text = display.contentOnly
+      ? resultsRef.current.map(r => r.content).join('\n')
+      : resultsRef.current.map(r => `${r.file}\t${r.line}\t${r.content}`).join('\n');
     if (!text) return;
     await navigator.clipboard.writeText(text);
     setStatus(`Copied ${resultsRef.current.length} rows`);

@@ -1,9 +1,9 @@
-# Advanced Search Tool
+# Scan Large TXT Files
 
-A fast, local-only web app for searching across large `.txt` files with advanced query syntax — built for credential/data files but works with any plain-text data.
+A fast, local-only web app for **scanning and searching large `.txt` files** with advanced query syntax — built for credential/data files but works with any plain-text data.
 
 > **Fully local.** No data leaves your machine. Runs as a Node.js server on `localhost`.  
-> **New repository** · **Initial release:** 26 February 2025
+> **GitHub repo:** [sacn-large-txt-files](https://github.com/smartboy223/sacn-large-txt-files) — easy to find and understand. · **Initial release:** 26 February 2025
 
 ---
 
@@ -123,8 +123,8 @@ The saved file format follows the active display setting — if **Content Only**
 | **Search** | Run the search |
 | **Stop** | Cancel a running search |
 | **Quick Save** | Browser download as `search_results.txt` (browser asks where to save) |
-| **Copy Sel** | Copy selected rows to clipboard |
-| **Copy All** | Copy all results to clipboard |
+| **Copy Sel** | Copy selected rows (or current page if none selected) to clipboard — format matches display (content only or full) |
+| **Copy All** | Copy all results to clipboard — format matches display (content only or full) |
 | **Clear** | Clear the results list |
 
 ### 🛠️ Tools
