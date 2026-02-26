@@ -2,13 +2,16 @@
 
 A fast, local-only web app for searching across large `.txt` files with advanced query syntax — built for credential/data files but works with any plain-text data.
 
-> **Fully local.** No data leaves your machine. Runs as a Node.js server on `localhost`.
+> **Fully local.** No data leaves your machine. Runs as a Node.js server on `localhost`.  
+> **New repository** · **Initial release:** 26 February 2025
 
 ---
 
 ## Screenshots
 
-### Main Interface — Search & Results
+All screenshots from the app are shown below.
+
+### 1. Main Interface — Search & Results
 
 ![Main Interface](docs/screenshots/main.png.jpg)
 
@@ -16,7 +19,7 @@ A fast, local-only web app for searching across large `.txt` files with advanced
 
 ---
 
-### Query autocomplete
+### 2. Query autocomplete
 
 ![Query suggestions](docs/screenshots/query-suggestions.jpg)
 
@@ -24,7 +27,7 @@ A fast, local-only web app for searching across large `.txt` files with advanced
 
 ---
 
-### File Browser
+### 3. File Browser
 
 ![File Browser](docs/screenshots/file-browser.png.jpg)
 
@@ -32,7 +35,7 @@ A fast, local-only web app for searching across large `.txt` files with advanced
 
 ---
 
-### Save feedback
+### 4. Save feedback
 
 ![Save toast](docs/screenshots/save-toast.png.jpg)
 
