@@ -1,277 +1,277 @@
-# Scan Large TXT Files
+# 🔍 Scan Large TXT Files
 
-A fast, local-only web app for **scanning and searching large `.txt` files** with advanced query syntax — built for credential/data files but works with any plain-text data.
-
-> **Fully local.** No data leaves your machine. Runs as a Node.js server on `localhost`.  
-> **GitHub repo:** [sacn-large-txt-files](https://github.com/smartboy223/sacn-large-txt-files) — easy to find and understand. · **Initial release:** 26 February 2025
+**Stop opening 4GB files in Notepad.** Search across dozens of huge `.txt` files in seconds — with AND, OR, NOT, wildcards, and regex. All on your machine, zero cloud.
 
 ---
 
-## Screenshots
+## 🎯 Why use this instead of the old way?
 
-All screenshots from the app are shown below.
+| ❌ Old way | ✅ This tool |
+|------------|--------------|
+| Open one file at a time, Ctrl+F, repeat for 20 files | **Search 20+ files at once** — one query, one click |
+| Notepad/Excel crashes on multi-GB files | **Streaming** — files never fully loaded, no crash |
+| No way to say “password AND email but NOT test” | **Full query syntax**: AND, OR, NOT, LIKE, wildcards, regex |
+| Copy-paste from one file, then the next… | **Copy/Save** selected or all results in one go |
+| No idea which file had the hit | **See file + line** for every result, sort & dedupe |
+| Your data sent to “search engines” or unknown tools | **100% local** — nothing leaves your PC |
 
-### 1. Main Interface — Search & Results
+So: **faster**, **smarter**, and **private**. One app, any folder, any size.
+
+---
+
+## 🚀 What makes it powerful?
+
+- **⚡ Built for huge files** — Handles 20+ files of several GB each. Streams in 8MB chunks so RAM stays low.
+- **🔄 Parallel scan** — Up to 4 files at a time (configurable). Wall-clock time drops by ~4×.
+- **🎯 Smart pre-filter** — For queries like `alice AND password`, lines without both terms are skipped before any heavy work. Most lines never touch the full matcher.
+- **📋 Query language** — Not just “find word”. Combine keywords with AND, OR, NOT, LIKE, and regex. Exclude junk in one field.
+- **🖥️ One UI for everything** — Pick folder, choose files, run query, see progress, copy or save results. No scripts, no CLI to remember.
+- **🔒 Your data stays yours** — Runs on localhost. No accounts, no uploads, no telemetry.
+
+---
+
+## 👀 Who is it for?
+
+- **Researchers & analysts** — Comb through big log dumps or export files without opening each one.
+- **Devs & admins** — Grep-style search across many configs or logs with a real query language.
+- **Anyone with large text datasets** — Credential lists, scrape results, CSV-like exports — if it’s lines of text, this tool can search it.
+
+---
+
+## 📸 See it in action
+
+All screenshots from the app 👇
+
+### 1️⃣ Main interface — search & results
 
 ![Main Interface](docs/screenshots/main.png.jpg)
 
-*Directory bar, query and exclude inputs, display options, action buttons, and paginated results.*
+*Directory bar, query & exclude, display toggles, and paginated results.*
 
 ---
 
-### 2. Query autocomplete
+### 2️⃣ Query autocomplete
 
 ![Query suggestions](docs/screenshots/query-suggestions.jpg)
 
-*Type `AND`, `OR`, `NOT`, or `LIKE` and press **Tab** to accept a suggestion.*
+*Type `AND`, `OR`, `NOT`, or `LIKE` and press **Tab** to accept.*
 
 ---
 
-### 3. File Browser
+### 3️⃣ File browser
 
 ![File Browser](docs/screenshots/file-browser.png.jpg)
 
-*Click **Files** to select which `.txt` files to search. Shows file sizes and Select All / Clear All.*
+*Pick which `.txt` files to search. See sizes, Select All / Clear All.*
 
 ---
 
-### 4. Save feedback
+### 4️⃣ Save feedback
 
 ![Save toast](docs/screenshots/save-toast.png.jpg)
 
-*After Quick Save, a green success (or red error) toast appears; it auto-dismisses after 5 seconds.*
+*After Quick Save you get a clear success (or error) message.*
 
 ---
 
-## Features
+## ✨ Features
 
-### 🔍 Advanced Query Syntax
+### 🔤 Advanced query syntax
 
 | Syntax | Meaning | Example |
-|---|---|---|
+|--------|--------|---------|
 | `keyword` | Lines containing the keyword | `password` |
-| `a, b, c` | Lines containing **any** of these (OR) | `gmail, hotmail, yahoo` |
+| `a, b, c` | Lines containing **any** (OR) | `gmail, hotmail, yahoo` |
 | `a AND b` | Lines containing **both** | `password AND email` |
-| `a OR b` | Lines containing **either** | `alice OR bob` |
+| `a OR b` | Either | `alice OR bob` |
 | `NOT x` | Lines **not** containing x | `NOT test` |
-| `a AND NOT b` | Contains a but not b | `password AND NOT test` |
-| `a LIKE b` | Lines containing both a and b (proximity style) | `alice LIKE @gmail.com` |
-| `key*word` | Wildcard matching | `pass*` |
-| Regex | Full regular expression (enable Regex toggle) | `\d{3}-\d{4}` |
+| `a AND NOT b` | a but not b | `password AND NOT test` |
+| `a LIKE b` | Lines with both a and b | `alice LIKE @gmail.com` |
+| `key*word` | Wildcard | `pass*` |
+| Regex | Full regex (toggle on) | `\d{3}-\d{4}` |
 
-**Autocomplete:** type `AND`, `OR`, `NOT`, or `LIKE` and press **Tab** to complete.
-
----
-
-### 📁 File Browser & Navigation
-
-- Navigate any folder on your PC using the directory bar
-- **Back / Forward / Up** buttons for folder history
-- **Browse** button opens a Windows native folder picker dialog (stays on top of browser)
-- **Files** button opens a panel to select individual `.txt` files for targeted search
-- Shows file count and total / selected size in the badge
+**Pro tip:** Type `AND`, `OR`, `NOT`, or `LIKE` and press **Tab** to autocomplete.
 
 ---
 
-### ⚡ High-Performance Search Engine
+### 📁 File browser & navigation
 
-Optimised for scanning 20+ large files (multi-GB each):
-
-| Optimization | Detail |
-|---|---|
-| **Parallel file processing** | 4 files scanned simultaneously (configurable 1–8) |
-| **Mandatory-keyword pre-filter** | For `AND` / plain keyword queries, lines are eliminated with a single `indexOf` before any allocation |
-| **Exclude pre-filter** | Excluded lines are dropped before the full matcher runs |
-| **Streaming reads** | Files are never loaded into memory — read in 8 MB chunks |
-| **Single stat pass** | `fs.statSync` called once per file, result cached |
-| **No regex per line** | `\r` stripped via char-code check, not `.replace()` |
-| **Throttled progress** | Progress reported every 8 MB, not every N lines |
+- **Back / Forward / Up** — Navigate folders like in Explorer.
+- **Browse** — Windows folder picker (stays on top of the browser).
+- **Files** — Choose exactly which `.txt` files to include in the search.
+- **Badge** — Shows file count and total/selected size.
 
 ---
 
-### 🎛️ Search Options
+### ⚡ Under the hood (why it’s fast)
 
-| Toggle | Description |
-|---|---|
-| **Regex** | Treat query as a regular expression |
-| **Case** | Case-sensitive matching |
-| **Word** | Whole-word boundaries only |
-| **Fast** | Enable fast mode (parallel processing active) |
-| **LIVE** | Stream results as they arrive |
+| Optimization | What it does |
+|--------------|--------------|
+| **Parallel files** | 4 files scanned at once (1–8 configurable). |
+| **Mandatory-keyword pre-filter** | For AND/keyword queries, drop lines missing a term with a single `indexOf` — no extra allocations. |
+| **Exclude first** | Excluded keywords checked before the full matcher. |
+| **Streaming reads** | 8MB chunks, so multi-GB files don’t fill memory. |
+| **Throttled progress** | Progress every ~8MB so the UI stays responsive. |
 
 ---
 
-### 📊 Display Options
+### 🎛️ Search options
 
-Toggle any combination of columns:
+| Toggle | What it does |
+|--------|----------------|
+| **Regex** | Query is a full regular expression. |
+| **Case** | Case-sensitive matching. |
+| **Word** | Whole-word boundaries only. |
+| **Fast** | Parallel scan enabled. |
+| **LIVE** | Results stream in as they’re found. |
+
+---
+
+### 📊 Display options
+
+Choose what you see (and what you copy/save):
 
 | Column | Shows |
-|---|---|
-| **#** | Row number in results list |
-| **Line** | Line number within source file |
+|--------|--------|
+| **#** | Row number in the results list |
+| **Line** | Line number in the source file |
 | **File** | Source filename |
-| **Content Only** | Only the matched line text (default) |
+| **Content Only** | Just the line text (default) |
 
-The saved file format follows the active display setting — if **Content Only** is on, the saved file contains one line per result with only the content text.
+**Copy & Quick Save** use the same format as the display — content-only or full (file, line, content).
 
 ---
 
-### 💾 Results Actions
+### 💾 Buttons & tools
 
 | Button | Action |
-|---|---|
-| **Search** | Run the search |
-| **Stop** | Cancel a running search |
-| **Quick Save** | Browser download as `search_results.txt` (browser asks where to save) |
-| **Copy Sel** | Copy selected rows (or current page if none selected) to clipboard — format matches display (content only or full) |
-| **Copy All** | Copy all results to clipboard — format matches display (content only or full) |
+|--------|--------|
+| **Search** | Run the query |
+| **Stop** | Cancel the search |
+| **Quick Save** | Download as `search_results.txt` (browser asks where to save) |
+| **Copy Sel** | Copy selected rows (or current page) — format matches display |
+| **Copy All** | Copy all results — format matches display |
 | **Clear** | Clear the results list |
 
-### 🛠️ Tools
-
 | Tool | Action |
-|---|---|
-| **Sort A→Z / Z→A** | Toggle sort by filename then line number |
-| **Replace** | Find-and-replace within result content |
-| **Deduplicate** | Remove duplicate lines; shows count removed |
+|------|--------|
+| **Sort A→Z / Z→A** | Sort by file then line (toggle each click). |
+| **Replace** | Find-and-replace in result content. |
+| **Deduplicate** | Remove duplicates and see how many were removed. |
 
 ---
 
-### 📦 Data Handling
+### 📦 Big result sets
 
-- Results paginated at **200 per page** — stable even with 500,000+ results
-- Deduplication shows `Removed N duplicates (M remaining)`
-- Sort toggles between A→Z and Z→A on each click
-- Copy / save respects the active display format
+- **Pagination** — 200 results per page so the UI stays smooth even with 500k+ hits.
+- **Dedupe** — Shows “Removed N duplicates (M remaining)”.
+- **Sort** — One click to flip between A→Z and Z→A.
 
 ---
 
-## Quick Start
+## 🏃 Quick start
 
-### Requirements
+### What you need
 
-- **Windows 10/11** (for native folder picker; search works on any OS)
-- **Node.js 18+** — [download](https://nodejs.org)
+- **Windows 10/11** (for the native folder picker; search logic works on any OS).
+- **Node.js 18+** — [download](https://nodejs.org).
 
-### Run
+### Run (Windows)
 
-Double-click **`start.bat`** — it will:
+Double-click **`start.bat`**. It will:
 
-1. Install npm dependencies (first run only)
-2. Start the local API server on port `3000`
-3. Start the Vite dev server on port `5174`
-4. Open `http://localhost:5174` in your browser
+1. Install dependencies (first run only).
+2. Start the API on port **3000**.
+3. Start the app on port **5174** and open it in your browser.
 
 ```
-web_advanced-search-tool/
-├── start.bat          ← double-click to run
+📁 project/
+└── start.bat    ← double-click
 ```
 
-### Manual start (any OS)
+### Run (any OS)
 
 ```bash
 npm install
 npm run dev:all
 ```
 
-Then open `http://localhost:5174`.
+Then open **http://localhost:5174**.
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
 | Variable | Default | Description |
-|---|---|---|
-| `API_PORT` | `3000` | Port for the Express backend |
-| `PORT` | `5174` | Port for the Vite frontend |
-| `SEARCH_ROOT` | Parent folder of this project | Default directory opened on startup |
+|----------|--------|-------------|
+| `API_PORT` | `3000` | Backend port |
+| `PORT` | `5174` | Frontend port |
+| `SEARCH_ROOT` | Parent of project | Default folder on startup |
 
-Set these in a `.env` file (see `.env.example`) or in `start.bat`.
+Use a `.env` file or edit `start.bat`.
 
 ---
 
-## Project Structure
+## 📂 Repo & project layout
+
+**GitHub:** [sacn-large-txt-files](https://github.com/smartboy223/sacn-large-txt-files) · **Initial release:** 26 February 2025
 
 ```
-web_advanced-search-tool/
-│
-├── start.bat                   # One-click launcher (Windows)
+📁 web_advanced-search-tool/
+├── start.bat              # One-click launcher (Windows)
 ├── package.json
 ├── vite.config.ts
-│
-├── src/                        # React frontend (TypeScript)
-│   ├── App.tsx                 # Main UI component
-│   ├── api.ts                  # API client (fetch + SSE)
+├── src/                   # React frontend (TypeScript)
+│   ├── App.tsx
+│   ├── api.ts
 │   ├── main.tsx
 │   └── index.css
-│
-└── server/                     # Node.js / Express backend
-    ├── index.cjs               # HTTP endpoints (listing, search, save, pickers)
-    ├── search.cjs              # Parallel search engine (streaming, pre-filter, pool)
-    ├── searchParser.cjs        # Query parser (AND/OR/NOT/LIKE, extractMandatoryKeywords)
-    └── test-api.cjs            # API smoke tests (node server/test-api.cjs)
+└── server/                # Node backend
+    ├── index.cjs          # API routes
+    ├── search.cjs         # Parallel search engine
+    ├── searchParser.cjs   # Query parser (AND/OR/NOT/LIKE)
+    └── test-api.cjs       # API smoke tests
 ```
 
 ---
 
-## API Endpoints
+## 🔌 API (for integrations)
 
 | Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check; returns `{ ok, root }` |
-| `GET` | `/api/listing?path=` | List folders + files in a directory |
-| `POST` | `/api/search` | SSE stream: `result`, `progress`, `done` events |
-| `POST` | `/api/stop` | Abort current search |
-| `POST` | `/api/save` | Write results to a file path |
-| `POST` | `/api/pick-folder` | Open native Windows folder picker |
-| `POST` | `/api/pick-save-path` | Open native Windows Save As dialog |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health + default root |
+| `GET` | `/api/listing?path=` | List folders & files |
+| `POST` | `/api/search` | SSE: `result`, `progress`, `done` |
+| `POST` | `/api/stop` | Abort search |
+| `POST` | `/api/save` | Write results to a path |
+| `POST` | `/api/pick-folder` | Native folder picker |
+| `POST` | `/api/pick-save-path` | Native Save As dialog |
 
-### Search request body
+Example search body:
 
 ```json
 {
   "query": "alice AND password",
   "exclude": "test, spam",
   "maxResults": 100000,
-  "basePath": "C:\\data\\files",
+  "basePath": "C:\\data",
   "filePaths": [],
   "concurrency": 4,
-  "options": {
-    "caseSensitive": false,
-    "wholeWord": false,
-    "regex": false
-  }
+  "options": { "caseSensitive": false, "wholeWord": false, "regex": false }
 }
 ```
 
-### SSE events (streamed response)
+---
 
-```
-event: result
-data: { "line": 1042, "content": "alice:password123", "file": "C:\\data\\file1.txt" }
+## 📈 Performance in practice
 
-event: progress
-data: { "pct": 34, "processedBytes": 500000, "totalBytes": 1500000, "file": "file1.txt" }
-
-event: done
-data: { "total": 128, "timeMs": 3240 }
-```
+- **20 large files:** Parallel scan ≈ **4× faster** than doing them one by one.
+- **AND / keyword queries:** Pre-filter skips **most lines** before the full matcher — big win on huge files.
+- **Worst case:** OR-only or complex regex = full scan; still streaming and parallel, so it doesn’t crash.
 
 ---
 
-## Performance Notes
-
-On 20 × large `.txt` files (multi-GB):
-
-- **Sequential scan (old):** total_time = sum of all file times
-- **Parallel scan (current):** total_time ≈ sum_of_file_times / 4
-- **With mandatory-keyword pre-filter:** 99%+ of lines skipped before any string allocation for AND / plain-keyword queries
-
-Worst case (OR-only query, no mandatory keyword, regex): full scan of all files — pre-filter cannot help. Use `AND` terms when possible to enable pre-filtering.
-
----
-
-## Running the API Test
+## 🧪 Run API tests
 
 With the server running:
 
@@ -279,23 +279,26 @@ With the server running:
 node server/test-api.cjs
 ```
 
-Tests: health check, save (creates + verifies + deletes a temp file), empty-results save.
+Runs health check and save endpoint tests.
 
 ---
 
-## Tech Stack
+## 🛠️ Tech stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Tailwind CSS v4, Vite 6 |
-| Animations | Motion (Framer Motion) |
-| Icons | Lucide React |
+| Layer | Tech |
+|-------|------|
+| Frontend | React 19, TypeScript, Tailwind v4, Vite 6 |
+| UI | Motion (Framer Motion), Lucide icons |
 | Backend | Node.js, Express 4 |
-| Search | Custom streaming engine (`readline` + parallel pool) |
-| Folder picker | PowerShell `FolderBrowserDialog` / `SaveFileDialog` (Windows) |
+| Search | Custom streaming + parallel pool |
+| Pickers | PowerShell (FolderBrowserDialog / SaveFileDialog) on Windows |
 
 ---
 
-## License
+## 📄 License
 
-MIT — use freely for personal or commercial projects.
+MIT — use it for anything you like.
+
+---
+
+**Made for people who have too many big text files and too little time.** 🚀
