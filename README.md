@@ -308,8 +308,7 @@ MIT — use it for anything you like.
 On your GitHub repo page, add **Topics** (click the gear next to "About"):
 - `search`, `text-search`, `txt`, `large-files`, `grep`, `local`, `nodejs`, `react`, `offline`
 
-A short **Description** helps too, e.g.:  
-*"Search across large .txt files with AND/OR/NOT — local, fast, no uploads."*
+Use a short **Description** (see `GITHUB_ABOUT.md` for copy-paste). Keep it about the project only — no tool attribution (e.g. no "Made with Cursor") in the repo description.
 
 ---
 

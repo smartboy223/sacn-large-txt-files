@@ -2,6 +2,8 @@
 
 Use this in your repo: click the **⚙️ gear** next to "About" on the repo homepage, then paste below.
 
+**Do not add** "Made with Cursor" or similar tool attribution to the description — keep it about the project only.
+
 ---
 
 ## Description (one line)
