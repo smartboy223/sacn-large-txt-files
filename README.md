@@ -212,32 +212,26 @@ Use a `.env` file or edit `start.bat`.
 
 ---
 
-## 📂 Repo & project layout
-
-**Repo name:** `search-large-txt-files` — so people searching for *"search large txt files"* or *"large text file search tool"* can find it.
-
-**GitHub:** [search-large-txt-files](https://github.com/smartboy223/search-large-txt-files) · **Initial release:** 26 February 2025
+## 📂 Project layout
 
 ```
-📁 web_advanced-search-tool/
-├── start.bat              # One-click launcher (Windows)
+├── start.bat
 ├── package.json
 ├── vite.config.ts
-├── src/                   # React frontend (TypeScript)
+├── src/
 │   ├── App.tsx
 │   ├── api.ts
 │   ├── main.tsx
 │   └── index.css
-└── server/                # Node backend
-    ├── index.cjs          # API routes
-    ├── search.cjs         # Parallel search engine
-    ├── searchParser.cjs   # Query parser (AND/OR/NOT/LIKE)
-    └── test-api.cjs       # API smoke tests
+└── server/
+    ├── index.cjs
+    ├── search.cjs
+    └── searchParser.cjs
 ```
 
 ---
 
-## 🔌 API (for integrations)
+## 🔌 API
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -249,39 +243,9 @@ Use a `.env` file or edit `start.bat`.
 | `POST` | `/api/pick-folder` | Native folder picker |
 | `POST` | `/api/pick-save-path` | Native Save As dialog |
 
-Example search body:
-
-```json
-{
-  "query": "alice AND password",
-  "exclude": "test, spam",
-  "maxResults": 100000,
-  "basePath": "C:\\data",
-  "filePaths": [],
-  "concurrency": 4,
-  "options": { "caseSensitive": false, "wholeWord": false, "regex": false }
-}
-```
-
 ---
 
-## 📈 Performance in practice
-
-- **20 large files:** Parallel scan ≈ **4× faster** than doing them one by one.
-- **AND / keyword queries:** Pre-filter skips **most lines** before the full matcher — big win on huge files.
-- **Worst case:** OR-only or complex regex = full scan; still streaming and parallel, so it doesn’t crash.
-
----
-
-## 🧪 Run API tests
-
-With the server running:
-
-```bash
-node server/test-api.cjs
-```
-
-Runs health check and save endpoint tests.
+## 📈 Performance
 
 ---
 
@@ -300,10 +264,3 @@ Runs health check and save endpoint tests.
 ## 📄 License
 
 MIT — use it for anything you like.
-
----
-
-### 🌟 Help others find this repo
-
-
-**Made for people who have too many big text files and too little time.** 🚀

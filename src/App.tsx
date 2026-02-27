@@ -8,8 +8,6 @@ import {
 import { motion } from 'motion/react';
 import * as api from './api';
 
-// ---------- Types ----------
-
 interface SearchResult {
   id: string;
   line: number | null;
@@ -25,8 +23,6 @@ interface FileEntry { name: string; path: string; size: number; }
 
 const RESULTS_PER_PAGE = 200;
 const OPERATOR_SUGGESTIONS = ['AND', 'OR', 'NOT', 'LIKE', 'AND NOT'];
-
-// ---------- Small components ----------
 
 const IconButton = ({ icon: Icon, label, onClick, variant = 'secondary', className = '', disabled = false }: {
   icon: any; label: string; onClick?: () => void; variant?: 'primary'|'secondary'|'danger'|'success'|'warning'|'info'; className?: string; disabled?: boolean;
@@ -73,10 +69,7 @@ function pathParts(p: string): { label: string; path: string }[] {
   return result;
 }
 
-// ---------- Main App ----------
-
 export default function App() {
-  // --- Directory state ---
   const [currentPath, setCurrentPath] = useState('');
   const [folders, setFolders] = useState<DirEntry[]>([]);
   const [files, setFiles] = useState<FileEntry[]>([]);
@@ -88,7 +81,6 @@ export default function App() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showFilesModal, setShowFilesModal] = useState(false);
 
-  // --- Search state ---
   const [query, setQuery] = useState('');
   const [exclude, setExclude] = useState('');
   const [maxResults, setMaxResults] = useState(100000);
@@ -99,18 +91,16 @@ export default function App() {
   const [options, setOptions] = useState<SearchOptions>({ regex: false, caseSensitive: false, wholeWord: false, fastMode: true, live: false });
   const [display, setDisplay] = useState<DisplayOptions>({ showNumber: false, showLine: false, showFile: false, contentOnly: true });
 
-  // --- Results + pagination ---
   const resultsRef = useRef<SearchResult[]>([]);
   const [resultCount, setResultCount] = useState(0);
   const [resultsVersion, setResultsVersion] = useState(0); // bump after sort/dedup/reverse so list re-renders
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az'); // toggles each click
   const [scanningFile, setScanningFile] = useState<string | null>(null); // current file being scanned
-  const lastCountUpdateRef = useRef(0); // timestamp of last setResultCount during streaming
+  const lastCountUpdateRef = useRef(0);
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(resultCount / RESULTS_PER_PAGE));
   const pageResults = useMemo(() => resultsRef.current.slice((page - 1) * RESULTS_PER_PAGE, page * RESULTS_PER_PAGE), [page, resultCount, resultsVersion]);
 
-  // --- Modals ---
   const [showHelp, setShowHelp] = useState(false);
   const [showReplaceModal, setShowReplaceModal] = useState(false);
   const [replaceFind, setReplaceFind] = useState('');
@@ -123,12 +113,9 @@ export default function App() {
     return () => clearTimeout(t);
   }, [saveFeedback]);
 
-  // --- Autocomplete ---
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [sugIdx, setSugIdx] = useState(0);
   const queryRef = useRef<HTMLInputElement>(null);
-
-  // ====== Directory navigation ======
 
   const navigateTo = useCallback((dirPath: string, pushHistory = true) => {
     setLoadError(null);
@@ -198,8 +185,6 @@ export default function App() {
     }
   };
 
-  // ====== Autocomplete ======
-
   const updateSuggestions = (val: string) => {
     setQuery(val);
     const cursor = queryRef.current?.selectionStart ?? val.length;
@@ -244,8 +229,6 @@ export default function App() {
     if (e.key === 'Enter') { handleSearch(); }
   };
 
-  // ====== Search ======
-
   const handleSearch = () => {
     if (!query.trim()) return;
     setSuggestions([]);
@@ -272,7 +255,6 @@ export default function App() {
         onResult: (r) => {
           count++;
           resultsRef.current.push({ id: String(count), line: r.line, content: r.content, file: r.file, selected: false });
-          // Throttle React re-renders: update count at most every 200 ms
           const now = Date.now();
           if (now - lastCountUpdateRef.current >= 200 || count <= 10) {
             lastCountUpdateRef.current = now;
@@ -299,15 +281,12 @@ export default function App() {
 
   const handleClear = () => { resultsRef.current = []; setResultCount(0); setPage(1); setStatus('Idle'); setProgress(0); setSearchTimeMs(0); };
 
-  // ====== Actions ======
-
   const toggleResultSelected = (id: string) => {
     const r = resultsRef.current.find(x => x.id === id);
     if (r) r.selected = !r.selected;
     setResultCount(c => c);  // force re-render
   };
 
-  /** Web download: browser asks where to save (default search_results.txt); format matches view (content-only or full). */
   const handleDownloadResults = () => {
     if (resultsRef.current.length === 0) {
       setStatus('No results to save');
@@ -385,8 +364,6 @@ export default function App() {
 
   const getFileName = (fp: string) => fp.replace(/^.*[/\\]/, '');
 
-  // ====== Derived ======
-
   const selectedInCurrent = useMemo(() => files.filter(f => selectedFiles.has(f.path)), [files, selectedFiles]);
   const selectedCount = selectedInCurrent.length;
   const totalSizeBytes = selectedCount > 0
@@ -395,12 +372,9 @@ export default function App() {
   const badgeText = selectedCount > 0 ? `${selectedCount}/${files.length} selected | ${formatSize(totalSizeBytes)}` : `${files.length} files | ${formatSize(totalSizeBytes)}`;
   const breadcrumbs = currentPath ? pathParts(currentPath) : [];
 
-  // ====== Render ======
-
   return (
     <div className="flex flex-col h-screen bg-slate-950 text-slate-200 font-sans overflow-hidden selection:bg-blue-500/30">
 
-      {/* ===== Row 0: Directory bar (clean) ===== */}
       <div className="flex items-center gap-1.5 p-2 bg-slate-900 border-b border-slate-800 shadow-sm z-10">
         <button onClick={goBack} disabled={navHistory.length === 0} className="p-1.5 rounded hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed shrink-0" title="Back"><ChevronLeft size={16} /></button>
         <button onClick={goForward} disabled={navFuture.length === 0} className="p-1.5 rounded hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed shrink-0" title="Forward"><ChevronRight size={16} /></button>
@@ -426,9 +400,7 @@ export default function App() {
         {loadError && <button onClick={() => navigateTo(defaultRoot || '')} className="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-semibold shrink-0">Retry</button>}
       </div>
 
-      {/* ===== Controls ===== */}
       <div className="flex-none flex flex-col gap-2.5 p-3 overflow-y-auto max-h-[38vh]">
-        {/* Query + autocomplete */}
         <div className="flex flex-col gap-1">
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 text-sm font-bold text-slate-100"><Search size={16} className="text-blue-400" /> Search Query</label>
@@ -452,7 +424,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Exclude + Max results */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-2">
           <div className="flex flex-col gap-1">
             <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider"><Ban size={12} className="text-red-400" /> Exclude (comma-separated keywords to skip)</label>
@@ -466,7 +437,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Options + Display */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             <ToggleChip label="Regex" icon={Regex} active={options.regex} onClick={() => setOptions(p => ({...p, regex: !p.regex}))} />
@@ -492,7 +462,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
           <IconButton icon={Search} label="Search" variant="primary" onClick={handleSearch} disabled={isSearching} />
           <IconButton icon={Square} label="Stop" variant="danger" onClick={handleStop} disabled={!isSearching} />
@@ -502,7 +471,6 @@ export default function App() {
           <IconButton icon={X} label="Clear" variant="warning" onClick={handleClear} />
         </div>
 
-        {/* Tools */}
         <div className="flex items-center gap-3">
           <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2"><Settings2 size={14} /> Tools:</div>
           <div className="flex gap-2">
@@ -513,7 +481,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Save feedback toast */}
       {saveFeedback && (
         <div className={`mx-4 mb-2 px-4 py-3 rounded-lg border flex items-center justify-between gap-3 shadow-lg ${saveFeedback.type === 'success' ? 'bg-emerald-950/90 border-emerald-600/50 text-emerald-200' : 'bg-red-950/90 border-red-600/50 text-red-200'}`}>
           <span className="flex items-center gap-2 text-sm font-medium">
@@ -524,7 +491,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ===== Progress ===== */}
       <div className="px-4 pb-1.5">
         <div className="h-1 w-full bg-slate-800 rounded-full overflow-hidden">
           <motion.div className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ type: 'tween', ease: 'linear' }} />
@@ -537,7 +503,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* ===== Results ===== */}
       <div className="flex-1 min-h-0 bg-slate-900 mx-4 mb-0 border-x border-t border-slate-800 rounded-t-lg overflow-hidden flex flex-col">
         <div className="flex items-center bg-slate-950 border-b border-slate-800 px-4 py-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider select-none">
           {display.showNumber && <div className="w-12 shrink-0">#</div>}
@@ -563,7 +528,6 @@ export default function App() {
             ))
           )}
         </div>
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 py-1.5 border-t border-slate-800 bg-slate-950 text-xs">
             <button onClick={() => setPage(1)} disabled={page === 1} className="p-1 rounded hover:bg-slate-800 disabled:opacity-30"><ChevronsLeft size={14} /></button>
@@ -576,7 +540,6 @@ export default function App() {
         )}
       </div>
 
-      {/* ===== Footer ===== */}
       <div className="bg-slate-950 border-t border-slate-800 p-1.5 px-4 flex justify-between items-center text-xs font-mono text-slate-500 select-none">
         <div className="flex items-center gap-4">
           <span className="text-slate-400">Total: <span className="text-slate-200 font-bold">{resultCount.toLocaleString()}</span></span>
@@ -591,7 +554,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* ===== Modals ===== */}
       {showHelp && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={() => setShowHelp(false)}>
           <div className="bg-slate-900 border border-slate-700 rounded-lg shadow-xl max-w-lg w-full p-6 text-sm text-slate-200 font-mono" onClick={e => e.stopPropagation()}>

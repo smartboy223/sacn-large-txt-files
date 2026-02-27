@@ -1,7 +1,3 @@
-/**
- * Query parser and line matcher for AND/OR/NOT/LIKE (mirrors Smart_search.py logic).
- */
-
 function normalizeQueryText(text) {
   if (!text || typeof text !== 'string') return '';
   return text
@@ -138,42 +134,23 @@ function getKeywords(condition, set) {
   }
 }
 
-/**
- * Extract keywords that MUST appear on a line for it to ever match the query.
- * Used for a cheap pre-filter before the full matcher runs.
- *
- *   keyword       → [keyword]
- *   AND(a, b, c)  → [a, b, c]  (all must be present)
- *   OR(a, b)      → []         (either could match — can't require either)
- *   NOT(x)        → []         (any non-x line could match)
- *   LIKE(k, p)    → [k, p]     (both must appear)
- *   empty         → []
- */
 function extractMandatoryKeywords(condition) {
   if (!condition) return [];
   const type = condition.type || 'keyword';
   if (type === 'keyword') {
     const v = (condition.value || '').trim();
-    // wildcards and regex can't be used as plain substrings
     if (!v || v.includes('*') || v.includes('(') || v.includes('|')) return [];
     return [v];
   }
   if (type === 'and') {
-    // all branches are required → union all mandatory keywords
     const result = [];
     for (const c of (condition.conditions || [])) {
       result.push(...extractMandatoryKeywords(c));
     }
     return result;
   }
-  if (type === 'or') {
-    // any branch could satisfy the query → no mandatory keyword
-    return [];
-  }
-  if (type === 'not') {
-    // NOT x → any line without x could match → no mandatory keyword
-    return [];
-  }
+  if (type === 'or') return [];
+  if (type === 'not') return [];
   if (type === 'like') {
     const result = [];
     if (condition.keyword && condition.keyword.trim()) result.push(condition.keyword.trim());

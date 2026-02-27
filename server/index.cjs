@@ -2,20 +2,15 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { execSync } = require('child_process');
 const { runSearch, setSearchAbort } = require('./search.cjs');
 
 const app = express();
 const PORT = Number(process.env.API_PORT) || 3000;
-
-// Root directory: default = parent of this project (where .txt files live)
 const SEARCH_ROOT = path.resolve(process.env.SEARCH_ROOT || path.join(__dirname, '..', '..'));
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// --- Listing: GET /api/listing?path= ---
-// path = absolute directory path (default: SEARCH_ROOT). Can navigate anywhere on the PC.
 app.get('/api/listing', (req, res) => {
   const pathParam = req.query.path || req.query.root;
   let reqPath = pathParam && String(pathParam).trim() !== ''
@@ -53,7 +48,6 @@ app.get('/api/listing', (req, res) => {
   }
 });
 
-// --- Search: POST /api/search (SSE stream) ---
 app.post('/api/search', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -91,13 +85,11 @@ app.post('/api/search', (req, res) => {
   );
 });
 
-// --- Stop: POST /api/stop ---
 app.post('/api/stop', (req, res) => {
   setSearchAbort(true);
   res.json({ ok: true });
 });
 
-// --- Save: POST /api/save ---
 app.post('/api/save', (req, res) => {
   const { filePath, results, contentOnly } = req.body || {};
   if (!filePath || !Array.isArray(results)) {
@@ -117,19 +109,16 @@ app.post('/api/save', (req, res) => {
   }
 });
 
-// Health + default root (where the server is running)
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, root: SEARCH_ROOT });
 });
 
-// --- Pick folder (opens native folder dialog, async via spawn) ---
 app.post('/api/pick-folder', (req, res) => {
   const { spawn } = require('child_process');
   const os = require('os');
   const tmpOut = path.join(os.tmpdir(), '_pick_folder_' + Date.now() + '.txt');
 
   if (process.platform === 'win32') {
-    // PowerShell + TopMost form so the folder dialog appears in front of the browser
     const tmpPs = tmpOut.replace('.txt', '.ps1');
     const psCode = `
 Add-Type -AssemblyName System.Windows.Forms
@@ -182,7 +171,6 @@ $form.Close()
   }
 });
 
-// --- Pick save path (opens native Save As dialog so user chooses where to save) ---
 app.post('/api/pick-save-path', (req, res) => {
   const { spawn } = require('child_process');
   const os = require('os');
@@ -241,7 +229,6 @@ $form.Close()
   }
 });
 
-// Serve static build in production
 const dist = path.join(__dirname, '..', 'dist');
 if (fs.existsSync(dist)) {
   app.use(express.static(dist));
@@ -252,6 +239,4 @@ if (fs.existsSync(dist)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Advanced Search (local) at http://localhost:${PORT} | default path: ${SEARCH_ROOT}`);
-});
+app.listen(PORT);
