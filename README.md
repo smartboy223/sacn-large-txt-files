@@ -214,7 +214,9 @@ Use a `.env` file or edit `start.bat`.
 
 ## 📂 Repo & project layout
 
-**GitHub:** [sacn-large-txt-files](https://github.com/smartboy223/sacn-large-txt-files) · **Initial release:** 26 February 2025
+**Repo name:** `search-large-txt-files` — so people searching for *"search large txt files"* or *"large text file search tool"* can find it.
+
+**GitHub:** [search-large-txt-files](https://github.com/smartboy223/search-large-txt-files) · **Initial release:** 26 February 2025
 
 ```
 📁 web_advanced-search-tool/
@@ -298,6 +300,16 @@ Runs health check and save endpoint tests.
 ## 📄 License
 
 MIT — use it for anything you like.
+
+---
+
+### 🌟 Help others find this repo
+
+On your GitHub repo page, add **Topics** (click the gear next to "About"):
+- `search`, `text-search`, `txt`, `large-files`, `grep`, `local`, `nodejs`, `react`, `offline`
+
+A short **Description** helps too, e.g.:  
+*"Search across large .txt files with AND/OR/NOT — local, fast, no uploads."*
 
 ---
 
