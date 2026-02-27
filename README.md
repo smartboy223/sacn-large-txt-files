@@ -305,11 +305,5 @@ MIT — use it for anything you like.
 
 ### 🌟 Help others find this repo
 
-On your GitHub repo page, add **Topics** (click the gear next to "About"):
-- `search`, `text-search`, `txt`, `large-files`, `grep`, `local`, `nodejs`, `react`, `offline`
-
-Use a short **Description** (see `GITHUB_ABOUT.md` for copy-paste). Keep it about the project only — no tool attribution (e.g. no "Made with Cursor") in the repo description.
-
----
 
 **Made for people who have too many big text files and too little time.** 🚀
