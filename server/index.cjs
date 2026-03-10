@@ -59,9 +59,15 @@ app.post('/api/search', (req, res) => {
     if (typeof res.flush === 'function') res.flush();
   };
 
-  const { query, exclude, maxResults, options, basePath, filePaths } = req.body || {};
+  const { query, exclude, maxResults, options, basePath, filePaths, concurrencyHint } = req.body || {};
   const base = (basePath && basePath.trim()) || SEARCH_ROOT;
   const max = Math.min(Number(maxResults) || 1000, 500000);
+  const os = require('os');
+  const envConcurrency = process.env.SEARCH_CONCURRENCY ? Math.min(Math.max(parseInt(process.env.SEARCH_CONCURRENCY, 10) || 4, 1), 32) : null;
+  const clientHint = concurrencyHint && Number(concurrencyHint) > 0
+    ? Math.min(Math.max(Number(concurrencyHint) * 2, 4), 24)
+    : null;
+  const concurrency = envConcurrency ?? clientHint ?? undefined; // let search.cjs use os.cpus() when undefined
 
   runSearch(
     {
@@ -71,12 +77,13 @@ app.post('/api/search', (req, res) => {
       options: options || {},
       basePath: base,
       filePaths: filePaths || [],
+      concurrency,
     },
     result => send('result', result),
-    (processedBytes, totalBytes, currentFile) => {
-      const pct = totalBytes > 0 ? Math.round((processedBytes / totalBytes) * 100) : 0;
+    (processedBytes, totalBytes, currentFile, filePct, filesDone, totalFiles) => {
+      const pct = totalBytes > 0 ? Math.round((processedBytes / totalBytes) * 100) : 0; // overall % of all bytes across all files
       const file = currentFile ? require('path').basename(currentFile) : null;
-      send('progress', { pct, processedBytes, totalBytes, file });
+      send('progress', { pct, processedBytes, totalBytes, file, filePct: filePct ?? 0, filesDone: filesDone ?? 0, totalFiles: totalFiles ?? 0 });
     },
     done => {
       send('done', done);
