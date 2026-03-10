@@ -1,6 +1,7 @@
 function normalizeQueryText(text) {
   if (!text || typeof text !== 'string') return '';
   return text
+    .replace(/[\t\n\r]+/g, ', ')
     .replace(/\s*,\s*/g, ', ')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -11,12 +12,45 @@ function splitByOperator(query, operator) {
   return query.split(re);
 }
 
+function getParenDepth(str, index) {
+  let depth = 0;
+  for (let i = 0; i < index && i < str.length; i++) {
+    if (str[i] === '(') depth++;
+    else if (str[i] === ')') depth--;
+  }
+  return depth;
+}
+
+function splitByOperatorOutsideParens(query, operator) {
+  const re = new RegExp('\\b' + operator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+  const parts = [];
+  let lastEnd = 0;
+  let match;
+  while ((match = re.exec(query)) !== null) {
+    if (getParenDepth(query, match.index) === 0) {
+      parts.push(query.slice(lastEnd, match.index).trim());
+      lastEnd = match.index + match[0].length;
+    }
+  }
+  parts.push(query.slice(lastEnd).trim());
+  return parts;
+}
+
+function unwrapParens(str) {
+  str = str.trim();
+  if (str.startsWith('(') && str.endsWith(')')) {
+    const inner = str.slice(1, -1);
+    if (getParenDepth(inner, inner.length) === 0) return unwrapParens(inner);
+  }
+  return str;
+}
+
 function parseQuery(queryText) {
   const q = normalizeQueryText(queryText);
   if (!q) return { type: 'empty', conditions: [] };
 
   const operators = ['OR', 'AND', 'NOT'];
-  const hasOp = operators.some(op => q.toUpperCase().includes(op)) || q.includes('(');
+  const hasOp = operators.some(op => q.toUpperCase().includes(' ' + op + ' ') || q.toUpperCase().startsWith(op + ' ') || q.toUpperCase().endsWith(' ' + op)) || q.includes('(') || q.toUpperCase().includes(' LIKE ');
   if (!hasOp) {
     const keywords = q.split(',').map(k => k.trim()).filter(Boolean);
     if (keywords.length > 1) {
@@ -25,23 +59,25 @@ function parseQuery(queryText) {
     if (keywords.length === 1) return { type: 'keyword', value: keywords[0] };
   }
 
-  return parseComplexQuery(q.replace(/[()]/g, ''));
+  return parseComplexQuery(q);
 }
 
 function parseComplexQuery(query) {
-  query = query.trim();
-  const orParts = splitByOperator(query, 'OR');
+  query = unwrapParens(query.trim());
+  if (!query) return { type: 'empty', conditions: [] };
+
+  const orParts = splitByOperatorOutsideParens(query, 'OR');
   if (orParts.length > 1) {
     return {
       type: 'or',
-      conditions: orParts.map(p => parseComplexQuery(p.trim())),
+      conditions: orParts.map(p => parseComplexQuery(p)).filter(c => c.type !== 'empty'),
     };
   }
-  const andParts = splitByOperator(query, 'AND');
+  const andParts = splitByOperatorOutsideParens(query, 'AND');
   if (andParts.length > 1) {
     return {
       type: 'and',
-      conditions: andParts.map(p => parseComplexQuery(p.trim())),
+      conditions: andParts.map(p => parseComplexQuery(p)).filter(c => c.type !== 'empty'),
     };
   }
   if (/^not\s+/i.test(query)) {
@@ -50,8 +86,8 @@ function parseComplexQuery(query) {
       condition: parseComplexQuery(query.slice(4).trim()),
     };
   }
-  const likeParts = splitByOperator(query, 'LIKE');
-  if (likeParts.length === 2) {
+  const likeParts = splitByOperatorOutsideParens(query, 'LIKE');
+  if (likeParts.length === 2 && likeParts[0] && likeParts[1]) {
     return {
       type: 'like',
       keyword: likeParts[0].trim(),

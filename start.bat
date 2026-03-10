@@ -3,29 +3,56 @@ title Advanced Search Tool
 cd /d "%~dp0"
 
 set API_PORT=3000
-set PORT=5174
+set VITE_PORT=5174
 
+echo.
 echo ============================================
-echo  Advanced Search Tool (runs locally on PC)
-echo  Default path = this folder (where code runs)
+echo   Advanced Search Tool
+echo   Run on any PC - just double-click this file
 echo ============================================
 echo.
 
-echo Installing dependencies...
-call npm install
+:: Check Node.js is installed
+where node >nul 2>nul
 if errorlevel 1 (
-  echo Failed to install dependencies.
+  echo [ERROR] Node.js is not installed or not in PATH.
+  echo.
+  echo Install Node.js 18+ from: https://nodejs.org
+  echo Then run this file again.
+  echo.
   pause
   exit /b 1
 )
 
+echo Node.js found.
 echo.
-echo Starting local server (port %API_PORT%) and app (port %PORT%)...
-echo You can change the search folder in the app via Map directory or Browse.
+
+:: Install dependencies (safe to run every time; fast if already installed)
+if not exist "node_modules" (
+  echo Installing dependencies (first run on this PC)
+  call npm install
+  if errorlevel 1 (
+    echo [ERROR] npm install failed.
+    pause
+    exit /b 1
+  )
+  echo.
+) else (
+  echo Dependencies found. Starting
+  echo.
+)
+
+:: Start API and frontend together (one window; closing it stops both)
+echo Starting API (port %API_PORT%) and app (port %VITE_PORT%)
+echo Open in browser: http://localhost:%VITE_PORT%
 echo.
-start /B "" node server/index.cjs
-timeout /t 2 /nobreak >nul
-start "" "http://localhost:%PORT%"
-call npm run dev
+echo Press Ctrl+C or close this window to stop.
+echo.
+
+:: Open browser after a short delay (non-blocking)
+start /B cmd /c "timeout /t 3 /nobreak >nul && start http://localhost:%VITE_PORT%"
+
+:: Run both server and Vite in foreground so closing the window stops everything
+call npm run dev:all
 
 pause

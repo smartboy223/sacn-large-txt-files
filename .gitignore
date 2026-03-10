@@ -1,0 +1,8 @@
+node_modules
+dist
+.specstory
+.cursor
+.cursorindexingignore
+.env
+.env.local
+*.log

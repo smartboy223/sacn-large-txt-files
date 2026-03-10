@@ -45,9 +45,10 @@ export async function runSearch(params: {
   options: { regex?: boolean; caseSensitive?: boolean; wholeWord?: boolean; fastMode?: boolean };
   basePath: string;
   filePaths: string[];
+  concurrencyHint?: number;
 }, callbacks: {
   onResult: (r: { line: number | null; content: string; file: string }) => void;
-  onProgress: (pct: number, file?: string | null) => void;
+  onProgress: (data: { pct: number; file?: string | null; filePct?: number; filesDone?: number; totalFiles?: number }) => void;
   onDone: (data: { total?: number; timeMs?: number; error?: string }) => void;
 }): Promise<void> {
   const res = await fetch(`${API_BASE}/api/search`, {
@@ -64,6 +65,7 @@ export async function runSearch(params: {
       },
       basePath: params.basePath,
       filePaths: params.filePaths.length ? params.filePaths : undefined,
+      concurrencyHint: params.concurrencyHint,
     }),
   });
   if (!res.ok) {
@@ -91,7 +93,13 @@ export async function runSearch(params: {
           try {
             const data = JSON.parse(line.slice(6));
             if (event === 'result') callbacks.onResult(data);
-            else if (event === 'progress') callbacks.onProgress(data.pct ?? 0, data.file ?? null);
+            else if (event === 'progress') callbacks.onProgress({
+              pct: data.pct ?? 0,
+              file: data.file ?? null,
+              filePct: data.filePct ?? 0,
+              filesDone: data.filesDone ?? 0,
+              totalFiles: data.totalFiles ?? 0,
+            });
             else if (event === 'done') callbacks.onDone(data);
           } catch (_) {}
         }

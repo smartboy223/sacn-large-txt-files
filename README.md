@@ -176,20 +176,33 @@ Choose what you see (and what you copy/save):
 - **Windows 10/11** (for the native folder picker; search logic works on any OS).
 - **Node.js 18+** — [download](https://nodejs.org).
 
-### Run (Windows)
+### Run on this PC or any other PC
 
-Double-click **`start.bat`**. It will:
+1. **Copy the whole project folder** to the PC (e.g. via USB, network, or zip).
+2. **Install Node.js 18+** if it’s not already installed — [nodejs.org](https://nodejs.org).
+3. **Double‑click `start.bat`** in the project folder.
 
-1. Install dependencies (first run only).
-2. Start the API on port **3000**.
-3. Start the app on port **5174** and open it in your browser.
+The batch file will:
+
+- Check that Node.js is available (and show an error with a link if not).
+- Install dependencies the first time (when `node_modules` is missing).
+- Start the API on port **3000** and the app on port **5174**.
+- Open the app in your browser after a few seconds.
+
+Closing the command window stops both the API and the app. No config or install steps needed beyond Node.js.
 
 ```
 📁 project/
-└── start.bat    ← double-click
+├── start.bat     ← double-click to run on any PC
+├── package.json
+└── ...
 ```
 
-### Run (any OS)
+### Run (Windows)
+
+Same as above: double-click **`start.bat`**.
+
+### Run (any OS, from terminal)
 
 ```bash
 npm install
@@ -245,7 +258,24 @@ Use a `.env` file or edit `start.bat`.
 
 ---
 
-## 📈 Performance
+## 📈 Performance & production (150GB+)
+
+- **Streaming**: Files are never fully loaded; the server uses `readline` and configurable stream buffers so memory stays bounded even over 150GB.
+- **Auto-tune from OS**: On startup the server reads **CPU count** and **RAM** (`os.cpus().length`, `os.totalmem()`, `os.freemem()`) and sets:
+  - **Concurrency**: number of files searched in parallel (default from CPU count, 4–24). More cores ⇒ more parallel files.
+  - **Stream buffer**: read buffer size (default from RAM: 8–32 MB). e.g. 16 GB+ total and 4 GB+ free ⇒ 32 MB buffer; 8 GB+ total and 2 GB+ free ⇒ 16 MB.
+  You can still override with env (see below).
+- **Concurrency**: 
+  - If `SEARCH_CONCURRENCY` is set (1–32), that value is used.
+  - Else the client can send `concurrencyHint` (e.g. `navigator.hardwareConcurrency`); server uses hint×2 (capped 4–24).
+  - Else server uses **CPU count** (4–24) from `os.cpus().length`.
+- **Stream buffer**: `SEARCH_STREAM_HWM_MB=16` (range 2–64) overrides the RAM-based default. When not set, buffer size is chosen from total/free memory as above.
+- **Result cap**: Search stops after `maxResults` (client default 100k, max 500k). Export to Excel is capped at 150k rows for reliability; the UI shows when results are capped.
+- **Stress test**: Run the built-in stress test to verify your setup:
+  - **Quick** (~50MB, 5 files): `npm run test:stress` or `node stress-test.cjs --quick`
+  - **Full** (200MB, 20 files): `npm run test:stress:full` or `node stress-test.cjs`
+  - **Custom**: `node stress-test.cjs --size=500 --files=30` for 500MB across 30 files.
+  - Covers: empty query, keyword, AND, OR, exclude, wildcard, regex, 50k/100k result sets, and abort.
 
 ---
 

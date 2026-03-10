@@ -1,0 +1,42 @@
+=== Sample Search Test File ===
+Use this file to test Regex, Case sensitive, Whole word options.
+
+--- Test 1: Simple keywords ---
+hello world
+Hello World
+HELLO WORLD
+helloworld
+hello-world
+hello123
+
+--- Test 2: Whole word boundaries ---
+the cat sat on the mat
+theater cathedral
+the the the
+atheist mathematics
+
+--- Test 3: Regex patterns ---
+email: user@example.com
+phone: 555-123-4567
+date: 2024-03-15
+ip: 192.168.1.1
+
+--- Test 4: AND/OR/NOT ---
+foo bar baz
+foo and bar
+bar only
+baz only
+spam spam spam
+ham and eggs
+ham only
+
+--- Test 5: Case variations ---
+Password
+PASSWORD
+password
+passWord
+
+--- Test 6: No spaces (comma/colon separated) ---
+url:test:wifi
+test,wifi,data
+domain.com,test,wifi

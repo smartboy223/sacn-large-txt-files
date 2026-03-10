@@ -1,7 +1,24 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const readline = require('readline');
 const { parseQuery, compileMatcher, getKeywords, extractMandatoryKeywords } = require('./searchParser.cjs');
+
+/** Read OS/hardware and return recommended concurrency and stream buffer (MB). Used when env vars are not set. */
+function getOsTunedDefaults() {
+  const cpus = Math.max(1, (os.cpus && os.cpus()) ? os.cpus().length : 4);
+  const totalMem = (os.totalmem && os.totalmem()) || 0;
+  const freeMem = (os.freemem && os.freemem()) || 0;
+  const gb = 1024 * 1024 * 1024;
+  const concurrency = Math.min(Math.max(cpus, 4), 24);
+  let streamHwmMB = 8;
+  if (totalMem >= 16 * gb && freeMem >= 4 * gb) streamHwmMB = 32;
+  else if (totalMem >= 8 * gb && freeMem >= 2 * gb) streamHwmMB = 16;
+  else if (totalMem >= 4 * gb) streamHwmMB = 12;
+  return { concurrency, streamHwmMB };
+}
+
+const osTuned = getOsTunedDefaults();
 
 let searchAbort = false;
 function setSearchAbort(value) { searchAbort = value; }
@@ -25,11 +42,9 @@ function buildPreFilter(mustContainRaw, mustContainLower, caseSensitive) {
     return rawLine => mustContainRaw.every(kw => rawLine.includes(kw));
   }
   return rawLine => {
+    const lineToCheck = rawLine.toLowerCase();
     for (let i = 0; i < mustContainLower.length; i++) {
-      if (rawLine.indexOf(mustContainLower[i]) === -1 &&
-          rawLine.indexOf(mustContainRaw[i]) === -1) {
-        return false;
-      }
+      if (lineToCheck.indexOf(mustContainLower[i]) === -1) return false;
     }
     return true;
   };
@@ -47,19 +62,25 @@ function searchOneFile(fp, fileSize, opts) {
     onResult,
     onProgress,
     totalBytes,
+    filesDone,
+    totalFiles,
   } = opts;
+
+  const bytesAtStart = state.processedBytes;
 
   return new Promise((resolve) => {
     if (state.abort || state.total >= maxResults) { resolve(); return; }
 
     let lineNum = 0;
     let lastProgressBytes = state.processedBytes;
-    const PROGRESS_INTERVAL = 8 * 1024 * 1024;
+    let fileProcessedBytes = 0;
+    const PROGRESS_INTERVAL = opts.progressIntervalBytes ?? 512 * 1024;
 
+    const streamHwm = opts.streamHighWaterMark ?? 8 * 1024 * 1024;
     let rl;
     try {
       rl = readline.createInterface({
-        input: fs.createReadStream(fp, { highWaterMark: 8 * 1024 * 1024 }),
+        input: fs.createReadStream(fp, { highWaterMark: streamHwm }),
         crlfDelay: Infinity,
       });
     } catch (err) {
@@ -90,13 +111,16 @@ function searchOneFile(fp, fileSize, opts) {
       const line = rawLine.charCodeAt(rawLine.length - 1) === 13
         ? rawLine.slice(0, -1) : rawLine;
 
-      state.processedBytes += rawLine.length + 1;
+      const lineBytes = rawLine.length + 1;
+      state.processedBytes += lineBytes;
+      fileProcessedBytes += lineBytes;
 
       if (!line) return;
 
       if (state.processedBytes - lastProgressBytes >= PROGRESS_INTERVAL) {
         lastProgressBytes = state.processedBytes;
-        if (onProgress) onProgress(state.processedBytes, totalBytes, fp);
+        const filePct = fileSize > 0 ? Math.min(100, Math.round((fileProcessedBytes / fileSize) * 100)) : 0;
+        if (onProgress) onProgress(state.processedBytes, totalBytes, fp, filePct, filesDone, totalFiles);
       }
 
       if (wordPatterns && wordPatterns.length > 0) {
@@ -111,10 +135,13 @@ function searchOneFile(fp, fileSize, opts) {
       onResult({ line: lineNum, content: line, file: fp });
     };
 
+    if (onProgress) onProgress(state.processedBytes, totalBytes, fp, 0, filesDone, totalFiles);
+
     rl.on('line', processLine);
 
     rl.on('close', () => {
-      if (onProgress) onProgress(state.processedBytes, totalBytes, fp);
+      const filePct = 100;
+      if (onProgress) onProgress(state.processedBytes, totalBytes, fp, filePct, filesDone, totalFiles);
       resolve();
     });
 
@@ -149,7 +176,7 @@ async function runSearch(params, onResult, onProgress, onDone) {
   const matcher      = compileMatcher(parsedQuery, caseSensitive, regex);
   const checkExclude = buildExcludeChecker(excludeList, caseSensitive);
 
-  const mustContainRaw   = extractMandatoryKeywords(parsedQuery);
+  const mustContainRaw   = regex ? [] : extractMandatoryKeywords(parsedQuery);
   const mustContainLower = mustContainRaw.map(k => k.toLowerCase());
   const preFilter        = buildPreFilter(mustContainRaw, mustContainLower, caseSensitive);
 
@@ -194,8 +221,19 @@ async function runSearch(params, onResult, onProgress, onDone) {
 
   const abortPoll = setInterval(() => { if (getSearchAbort()) state.abort = true; }, 100);
 
-  const POOL = Math.min(Math.max(Number(concurrency) || 4, 1), 8);
+  const defaultPool = Math.min(Math.max(Number(concurrency) || osTuned.concurrency, 1), 32);
+  const POOL = defaultPool;
   const startTime = Date.now();
+
+  const envHwm = process.env.SEARCH_STREAM_HWM_MB ? parseInt(process.env.SEARCH_STREAM_HWM_MB, 10) : null;
+  const streamHwmMB = envHwm != null && !isNaN(envHwm)
+    ? Math.min(Math.max(envHwm, 2), 64)
+    : osTuned.streamHwmMB;
+  const streamHighWaterMark = streamHwmMB * 1024 * 1024;
+  const progressIntervalBytes = 512 * 1024; // 512KB – fewer progress callbacks
+
+  const totalFiles = filesToSearch.length;
+  if (onProgress && totalFiles > 0) onProgress(0, totalBytes, null, 0, 0, totalFiles);
 
   try {
     for (let i = 0; i < filesToSearch.length; i += POOL) {
@@ -213,6 +251,10 @@ async function runSearch(params, onResult, onProgress, onDone) {
         onResult,
         onProgress,
         totalBytes,
+        filesDone: i,
+        totalFiles,
+        streamHighWaterMark,
+        progressIntervalBytes,
       };
 
       await Promise.all(
@@ -221,7 +263,7 @@ async function runSearch(params, onResult, onProgress, onDone) {
           .map(fp => searchOneFile(fp, fileSizeMap.get(fp), workerOpts))
       );
 
-      if (onProgress) onProgress(state.processedBytes, totalBytes, null);
+      if (onProgress) onProgress(state.processedBytes, totalBytes, null, 100, i + batch.length, totalFiles);
     }
   } catch (err) {
     clearInterval(abortPoll);
