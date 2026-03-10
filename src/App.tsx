@@ -206,7 +206,7 @@ const SearchChipInput = ({ chips, setChips, inputValue, setInputValue, onInputCh
 
   return (
     <div ref={containerRef} tabIndex={0} onKeyDown={handleContainerKeyDown} onClick={e => { if ((e.target as HTMLElement).closest('input')) return; if (!(e.target as HTMLElement).closest('[data-chip]')) onSelectionChange?.(new Set()); }}
-      className={`flex flex-wrap items-center gap-2 min-h-[42px] bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500/40 focus-within:border-blue-500/60 outline-none select-text shadow-lg shadow-black/10 ${className}`}>
+      className={`flex flex-wrap items-center gap-2 min-h-[42px] bg-slate-900 border border-white/10 rounded-xl px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500/40 focus-within:border-blue-500/60 outline-none select-text shadow-lg shadow-black/10 ${className}`}>
       {chips.map((c, i) => (
         <span key={`${c}-${i}`} data-chip
           onClick={e => handleChipClick(e, i)}
@@ -226,12 +226,12 @@ const SearchChipInput = ({ chips, setChips, inputValue, setInputValue, onInputCh
           placeholder={chips.length === 0 ? placeholder : 'Add more…'}
           className="w-full min-w-0 bg-transparent border-none outline-none text-slate-100 text-sm font-mono placeholder-slate-500 py-0.5" />
         {suggestions.length > 0 && (
-          <div className="absolute left-0 top-full mt-1 z-50 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[160px]">
+          <div className="absolute left-0 top-full mt-1 z-[100] bg-slate-950 border border-slate-600 rounded-lg shadow-2xl overflow-hidden min-w-[180px] ring-1 ring-black/30">
             {suggestions.map((s, i) => (
               <button key={s} onMouseDown={e => { e.preventDefault(); acceptSuggestion(s); }}
-                className={`w-full text-left px-3 py-1.5 text-sm font-mono ${i === sugIdx ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-700'}`}>{s}</button>
+                className={`w-full text-left px-3 py-2 text-sm font-mono ${i === sugIdx ? 'bg-blue-600 text-white' : 'text-slate-200 hover:bg-slate-800'}`}>{s}</button>
             ))}
-            <div className="px-3 py-1 text-[10px] text-slate-500 border-t border-white/10">Tab to accept</div>
+            <div className="px-3 py-2 text-xs text-slate-400 border-t border-slate-700 bg-slate-900 font-medium">Tab to accept</div>
           </div>
         )}
       </div>
